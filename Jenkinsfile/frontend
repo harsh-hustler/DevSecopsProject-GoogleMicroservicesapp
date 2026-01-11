@@ -14,13 +14,13 @@ pipeline {
     }
 
     stages {
-        stage("Clean Workspace") {
+        stage('Clean Workspace') {
             steps {
                 cleanWs()
             }
         }
 
-        stage("Git Checkout") {
+        stage('Git Checkout') {
             steps {
                 git branch: 'main', url: 'https://github.com/harsh-hustler/DevSecopsProject-GoogleMicroservicesapp.git'
             }
@@ -55,7 +55,7 @@ pipeline {
             }
         }
         // ---- Static Analysis & Report Ingestion ----
-        stage("SonarQube Analysis") {
+        stage('SonarQube Analysis') {
             steps {
                 dir('src/frontend') {
                     withSonarQubeEnv('sonar-server') {
@@ -70,7 +70,7 @@ pipeline {
             }
         }
 
-        stage("Quality Gate") {
+        stage('Quality Gate') {
             steps {
                 script {
                     timeout(time: 3, unit: 'MINUTES') {
@@ -132,7 +132,7 @@ pipeline {
                 }
             }
         }
-        stage("Trivy File Scan") {
+        stage('Trivy File Scan') {
             steps {
                 dir('src/frontend') { // Run the scan inside the target directory
                     script {
@@ -162,7 +162,7 @@ pipeline {
                 }
             }
         }
-        stage("Build Docker Image") {
+        stage('Build Docker Image') {
             steps {
                 dir('src/frontend') {
                     script {
@@ -178,7 +178,7 @@ pipeline {
             }
         }
 
-        stage("Trivy Scan Image") {
+        stage('Trivy Scan Image') {
             steps {
                 dir('src/frontend') {
                     script {
@@ -197,10 +197,10 @@ pipeline {
                     }
                 }
             }
-            // Missing closing brace '}' for the stages block was here
+        // Missing closing brace '}' for the stages block was here
         } // Closing brace for "Trivy Scan Image" stage
 
-        stage("Tag & Push to DockerHub") {
+        stage('Tag & Push to DockerHub') {
             steps {
                 dir('src/frontend') {
                     script {
@@ -218,35 +218,31 @@ pipeline {
             }
         }
 
-        
     } // Closing brace for 'stages' block
 
     // --- Final Check (Kept at the end) ---
     post {
         always {
-            dir('src/frontend') {
-                script {
-                    def buildStatus = currentBuild.currentResult
-                    def buildUser = currentBuild.getBuildCauses('hudson.model.Cause$UserIdCause')[0]?.userId ?: ' Github User'
+            script {
+                def buildStatus = currentBuild.currentResult
+                def buildUser = currentBuild.getBuildCauses('hudson.model.Cause$UserIdCause')[0]?.userId ?: 'Github User'
 
-                    emailext (
-                        subject: "Pipeline ${buildStatus}: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
-                        body: """
-                            <p>Frontend Google-Shop DevSecops pipeline status.</p>
-                            <p>Youtube Link :- https://www.youtube.com/@HarshRaj-ph7mn </p>
-                            <p>Project: ${env.JOB_NAME}</p>
-                            <p>Build Number: ${env.BUILD_NUMBER}</p>
-                            <p>Build Status: ${buildStatus}</p>
-                            <p>Started by: ${buildUser}</p>
-                            <p>Build URL: <a href="${env.BUILD_URL}">${env.BUILD_URL}</a></p>
-
-                        """,
-                        to: 'harshraj95340@gmail.com',
-                        from: 'harshraj95340@gmail.com',
-                        mimeType: 'text/html',
-                        attachmentsPattern: 'trivy-fs-report.txt,trivy-image-frontend.json,trivy-image-frontend.txt,gosec-report.json'
-                    )
-                }
+                emailext(
+                subject: "Pipeline ${buildStatus}: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                body: """
+                    <p>Frontend Google-Shop DevSecops pipeline status.</p>
+                    <p>Youtube Link :- https://www.youtube.com/@HarshRaj-ph7mn </p>
+                    <p>Project: ${env.JOB_NAME}</p>
+                    <p>Build Number: ${env.BUILD_NUMBER}</p>
+                    <p>Build Status: ${buildStatus}</p>
+                    <p>Started by: ${buildUser}</p>
+                    <p>Build URL: <a href="${env.BUILD_URL}">${env.BUILD_URL}</a></p>
+                """,
+                to: 'harshraj95340@gmail.com',
+                from: 'harshraj95340@gmail.com',
+                mimeType: 'text/html',
+                attachmentsPattern: 'trivy-fs-report.txt,trivy-image-frontend.json,trivy-image-frontend.txt,gosec-report.json'
+            )
             }
         }
     }
