@@ -59,12 +59,13 @@ pipeline {
             steps {
                 dir('src/frontend') {
                     withSonarQubeEnv('sonar-server') {
-                        sh ''' $SCANNER_HOME/bin/sonar-scanner \\
-                            -Dsonar.projectName=frontend \\
-                            -Dsonar.projectKey=frontend \\
-                            -Dsonar.sources=. \\
-                            -Dsonar.language=go \\
-                            -Dsonar.go.gosec.reportPaths=gosec-report.json '''
+                        sh """
+                  ${SCANNER_HOME}/bin/sonar-scanner \
+                    -Dsonar.projectName=frontend \
+                    -Dsonar.projectKey=frontend \
+                    -Dsonar.sources=. \
+                    -Dsonar.go.gosec.reportPaths=gosec-report.json
+                """
                     }
                 }
             }
@@ -217,7 +218,6 @@ pipeline {
                 }
             }
         }
-
     } // Closing brace for 'stages' block
 
     // --- Final Check (Kept at the end) ---
